@@ -7,9 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by jessie on 15-02-05.
@@ -39,7 +37,7 @@ public class HttpRequest {
 	private Method method;
 	private URI uri;
 	private String version;
-	private List<Header> headers = new ArrayList<Header>();
+	private Map<String, Header> headers = new HashMap<String, Header>();
 
 	public HttpRequest() {}
 
@@ -51,8 +49,12 @@ public class HttpRequest {
 		return method;
 	}
 
-	public void setURI(URI uri) {
+	private void setURI(URI uri) {
 		this.uri = uri;
+	}
+
+	public URI getURI() {
+		return uri;
 	}
 
 	public void setVersion(String version) {
@@ -70,10 +72,14 @@ public class HttpRequest {
 	}
 
 	public void addHeader(Header header) {
-		headers.add(header);
+		headers.put(header.getName(), header);
 	}
 
-	public List<Header> getHeaders() {
+	public Collection<Header> getHeadersCollection() {
+		return headers.values();
+	}
+
+	public Map<String, Header> getHeadersMap() {
 		return headers;
 	}
 
@@ -82,6 +88,10 @@ public class HttpRequest {
 
 		String requestLine = in.readLine();
 		System.out.println("Input line was: " + requestLine);
+
+		if(requestLine == null) {
+			return;
+		}
 
 		String[] splitInput = requestLine.split("\\s+");
 
@@ -121,7 +131,7 @@ public class HttpRequest {
 		while((headerLine = in.readLine()) != null && (!headerLine.equals("\r\n") && !headerLine.equals(""))) {
 			System.out.println("Got a header: " + headerLine);
 
-			String[] headerSplit = headerLine.split("\\s+");
+			String[] headerSplit = headerLine.split("\\s+", 2);
 
 			if(headerSplit.length == 2) {
 				String headerName = headerSplit[0];
