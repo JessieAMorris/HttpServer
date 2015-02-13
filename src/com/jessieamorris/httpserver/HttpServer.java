@@ -24,58 +24,73 @@ import java.util.concurrent.Executors;
  * Created by jessie.
  */
 public class HttpServer {
+	Executor executor = Executors.newFixedThreadPool(8);
+
 	public HttpServer(int portNumber) {
 		try {
 			ServerSocket serverSocket = new ServerSocket(portNumber);
 
-			Logger.println("Server started");
+			System.out.println("Server started on port " + portNumber);
 
 			Socket clientSocket = null;
 
 			while ((clientSocket = serverSocket.accept()) != null) {
 				Logger.println("Connection made?");
 
-				OutputStream out = clientSocket.getOutputStream();
-				BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+				final Socket finalClientSocket = clientSocket;
 
-				HttpRequest request = new HttpRequest();
-				HttpResponse response = new HttpResponse(out);
+				executor.execute(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							OutputStream out = finalClientSocket.getOutputStream();
+							BufferedReader in = new BufferedReader(new InputStreamReader(finalClientSocket.getInputStream()));
 
-				try {
-					request.parseRequest(in);
 
-					if (request.getMethod() == HttpRequest.Method.GET) {
-						URI requestUri = request.getURI();
 
-						// TODO: Security issues, could escalate by using "../" in paths
-						Path path = Paths.get("./", requestUri.getPath());
+							HttpRequest request = new HttpRequest();
+							HttpResponse response = new HttpResponse(out);
 
-						Logger.println("Trying to get a file at: " + path);
+							try {
+								request.parseRequest(in);
 
-						Charset charset = Charset.forName("US-ASCII");
-						response.setBodyReader(Files.newBufferedReader(path, charset));
+								if (request.getMethod() == HttpRequest.Method.GET) {
+									URI requestUri = request.getURI();
 
-						String mimeType = Files.probeContentType(path);
-						if (mimeType == null) {
-							mimeType = "text/plain";
+									// TODO: Security issues, could escalate by using "../" in paths
+									Path path = Paths.get("./", requestUri.getPath());
+
+									Logger.println("Trying to get a file at: " + path);
+
+									Charset charset = Charset.forName("US-ASCII");
+									response.setBodyReader(Files.newBufferedReader(path, charset));
+
+									String mimeType = Files.probeContentType(path);
+									if (mimeType == null) {
+										mimeType = "text/plain";
+									}
+
+									response.setHeader(new Header("Content-Type", mimeType));
+
+									response.handleRequest(request);
+								} else {
+									response.handleException(new NotImplementedException());
+								}
+							} catch (HttpException e) {
+								response.handleException(e);
+							} catch (NoSuchFileException e) {
+								response.handleException(new NotFoundException());
+							} catch (IOException e) {
+								response.handleException(new NotFoundException());
+							} finally {
+								in.close();
+								out.close();
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
 						}
-
-						response.setHeader(new Header("Content-Type", mimeType));
-
-						response.handleRequest(request);
-					} else {
-						response.handleException(new NotImplementedException());
 					}
-				} catch (HttpException e) {
-					response.handleException(e);
-				} catch (NoSuchFileException e) {
-					response.handleException(new NotFoundException());
-				} catch (IOException e) {
-					response.handleException(new NotFoundException());
-				} finally {
-					in.close();
-					out.close();
-				}
+				});
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
