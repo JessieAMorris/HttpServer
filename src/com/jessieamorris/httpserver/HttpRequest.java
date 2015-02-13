@@ -2,12 +2,15 @@ package com.jessieamorris.httpserver;
 
 import com.jessieamorris.httpserver.exceptions.InvalidRequestException;
 import com.jessieamorris.httpserver.exceptions.NotImplementedException;
+import com.jessieamorris.httpserver.logging.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URI;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by jessie on 15-02-05.
@@ -84,10 +87,10 @@ public class HttpRequest {
 	}
 
 	public void parseRequest(BufferedReader in) throws IOException, NotImplementedException, InvalidRequestException {
-		System.out.println("Got some input");
+		Logger.println("Got some input");
 
 		String requestLine = in.readLine();
-		System.out.println("Input line was: " + requestLine);
+		Logger.println("Input line was: " + requestLine);
 
 		if(requestLine == null) {
 			return;
@@ -95,7 +98,7 @@ public class HttpRequest {
 
 		String[] splitInput = requestLine.split("\\s+");
 
-		System.out.println("Split input was: " + Arrays.toString(splitInput));
+		Logger.println("Split input was: " + Arrays.toString(splitInput));
 
 		if (splitInput.length != 3) {
 			throw new InvalidRequestException();
@@ -109,7 +112,7 @@ public class HttpRequest {
 
 		validateRequestLine();
 
-		System.out.println("Method: " + getMethod());
+		Logger.println("Method: " + getMethod());
 
 		switch(getMethod()) {
 			case GET:
@@ -120,16 +123,16 @@ public class HttpRequest {
 				throw new NotImplementedException();
 		}
 
-		System.out.println("Headers done");
+		Logger.println("Headers done");
 	}
 
 	private void parseHeaders(BufferedReader in) throws IOException {
 		String headerLine;
 
-		System.out.println("Parsing headers!");
+		Logger.println("Parsing headers!");
 
 		while((headerLine = in.readLine()) != null && (!headerLine.equals("\r\n") && !headerLine.equals(""))) {
-			System.out.println("Got a header: " + headerLine);
+			Logger.println("Got a header: " + headerLine);
 
 			String[] headerSplit = headerLine.split("\\s+", 2);
 

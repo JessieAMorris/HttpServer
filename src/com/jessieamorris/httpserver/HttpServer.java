@@ -3,6 +3,7 @@ package com.jessieamorris.httpserver;
 import com.jessieamorris.httpserver.exceptions.HttpException;
 import com.jessieamorris.httpserver.exceptions.NotFoundException;
 import com.jessieamorris.httpserver.exceptions.NotImplementedException;
+import com.jessieamorris.httpserver.logging.Logger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,12 +28,12 @@ public class HttpServer {
 		try {
 			ServerSocket serverSocket = new ServerSocket(portNumber);
 
-			System.out.println("Server started");
+			Logger.println("Server started");
 
 			Socket clientSocket = null;
 
 			while ((clientSocket = serverSocket.accept()) != null) {
-				System.out.println("Connection made?");
+				Logger.println("Connection made?");
 
 				OutputStream out = clientSocket.getOutputStream();
 				BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -49,7 +50,7 @@ public class HttpServer {
 						// TODO: Security issues, could escalate by using "../" in paths
 						Path path = Paths.get("./", requestUri.getPath());
 
-						System.out.println("Trying to get a file at: " + path);
+						Logger.println("Trying to get a file at: " + path);
 
 						Charset charset = Charset.forName("US-ASCII");
 						response.setBodyReader(Files.newBufferedReader(path, charset));

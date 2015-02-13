@@ -1,8 +1,12 @@
 package com.jessieamorris.httpserver;
 
 import com.jessieamorris.httpserver.exceptions.HttpException;
+import com.jessieamorris.httpserver.logging.Logger;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
@@ -45,7 +49,7 @@ public class HttpResponse {
 			List<String> encodingValues = Arrays.asList(acceptEncodings.getValue().split("\\s*,\\s*"));
 
 			if(encodingValues.contains("gzip")) {
-				System.out.println("Changing output to gzip");
+				Logger.println("Changing output to gzip");
 
 				doGzip = true;
 				responseHeaders.put("Content-Encoding", new Header("Content-Encoding", "gzip"));
@@ -57,7 +61,7 @@ public class HttpResponse {
 		out.println(httpVersion + " " + statusCode + " " + statusMessage);
 
 		for (Header header : responseHeaders.values()) {
-			System.out.println("Responding with a header: " + header);
+			Logger.println("Responding with a header: " + header);
 			out.println(header.getName() + ": " + header.getValue());
 		}
 
