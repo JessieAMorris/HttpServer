@@ -24,4 +24,14 @@ public class Header {
 	public String toString() {
 		return name + ": " + value;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof Header) {
+			Header header = (Header) obj;
+			return (header.name.equals(this.name) && header.value.equals(this.value));
+		}
+
+		return false;
+	}
 }

@@ -41,6 +41,7 @@ public class HttpRequest {
 
 	private Method method;
 	private URI uri;
+	private String body;
 	private String version;
 	private Map<String, Header> headers = new HashMap<String, Header>();
 
@@ -62,6 +63,10 @@ public class HttpRequest {
 		return uri;
 	}
 
+	public String getBody() {
+		return body;
+	}
+
 	public void setVersion(String version) {
 		this.version = version;
 	}
@@ -71,7 +76,7 @@ public class HttpRequest {
 	}
 
 	public void validateRequestLine() throws InvalidRequestException {
-		if(!version.equalsIgnoreCase("HTTP/1.1")) {
+		if(version == null || !version.equalsIgnoreCase("HTTP/1.1")) {
 			throw new InvalidRequestException();
 		}
 	}
@@ -95,7 +100,7 @@ public class HttpRequest {
 		Logger.println("Input line was: " + requestLine);
 
 		if(requestLine == null) {
-			return;
+			throw new InvalidRequestException();
 		}
 
 		String[] splitInput = requestLine.split("\\s+");
@@ -106,11 +111,30 @@ public class HttpRequest {
 			throw new InvalidRequestException();
 		}
 
-		if (splitInput[0].equals("GET")) {
+		if (splitInput[0].equals(Method.OPTIONS.getMethod())) {
+			setMethod(HttpRequest.Method.OPTIONS);
+		} else if (splitInput[0].equals(Method.GET.getMethod())) {
 			setMethod(HttpRequest.Method.GET);
-			setURI(URI.create(splitInput[1]));
-			setVersion(splitInput[2]);
+		} else if (splitInput[0].equals(Method.HEAD.getMethod())) {
+			setMethod(HttpRequest.Method.HEAD);
+		} else if (splitInput[0].equals(Method.POST.getMethod())) {
+			setMethod(HttpRequest.Method.POST);
+		} else if (splitInput[0].equals(Method.PUT.getMethod())) {
+			setMethod(HttpRequest.Method.PUT);
+		} else if (splitInput[0].equals(Method.DELETE.getMethod())) {
+			setMethod(HttpRequest.Method.DELETE);
+		} else if (splitInput[0].equals(Method.TRACE.getMethod())) {
+			setMethod(HttpRequest.Method.TRACE);
+		} else if (splitInput[0].equals(Method.CONNECT.getMethod())) {
+			setMethod(HttpRequest.Method.CONNECT);
+		} else if (splitInput[0].equals(Method.PATCH.getMethod())) {
+			setMethod(HttpRequest.Method.PATCH);
+		} else {
+			throw new InvalidRequestException();
 		}
+
+		setURI(URI.create(splitInput[1]));
+		setVersion(splitInput[2]);
 
 		validateRequestLine();
 
@@ -121,8 +145,10 @@ public class HttpRequest {
 				parseHeaders(in);
 				break;
 
-			default:
-				throw new NotImplementedException();
+			case POST:
+				parseHeaders(in);
+				parseBody(in);
+				break;
 		}
 
 		Logger.println("Headers done");
@@ -148,6 +174,24 @@ public class HttpRequest {
 
 				addHeader(new Header(headerName, headerValue));
 			}
+		}
+	}
+
+	private void parseBody(BufferedReader in) throws IOException {
+		String bodyLine;
+
+		Logger.println("Parsing body!");
+
+		while((bodyLine = in.readLine()) != null) {
+			Logger.println("Got a bodyLine: " + bodyLine);
+
+			if(body == null) {
+				body = "";
+			} else {
+				body += "\n";
+			}
+
+			body += bodyLine;
 		}
 	}
 }
