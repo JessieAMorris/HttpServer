@@ -1,8 +1,9 @@
-package com.jessieamorris.httpserver;
+package com.jessieamorris.httpserver.server;
 
 import com.jessieamorris.httpserver.exceptions.HttpException;
+import com.jessieamorris.httpserver.exceptions.InternalServerException;
 import com.jessieamorris.httpserver.exceptions.NotFoundException;
-import com.jessieamorris.httpserver.exceptions.NotImplementedException;
+import com.jessieamorris.httpserver.handlers.IHttpHandler;
 import com.jessieamorris.httpserver.logging.Logger;
 
 import java.io.BufferedReader;
@@ -11,12 +12,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -24,9 +19,12 @@ import java.util.concurrent.Executors;
  * Created by jessie.
  */
 public class HttpServer {
-	Executor executor = Executors.newFixedThreadPool(8);
+	private IHttpHandler httpHandler;
+	private Executor executor = Executors.newFixedThreadPool(8);
 
-	public HttpServer(int portNumber) {
+	public HttpServer(int portNumber, IHttpHandler httpHandler) {
+		this.httpHandler = httpHandler;
+
 		try {
 			ServerSocket serverSocket = new ServerSocket(portNumber);
 
@@ -54,34 +52,15 @@ public class HttpServer {
 							try {
 								request.parseRequest(in);
 
-								if (request.getMethod() == HttpRequest.Method.GET) {
-									URI requestUri = request.getURI();
+								handleRequest(request, response);
 
-									// TODO: Security issues, could escalate by using "../" in paths
-									Path path = Paths.get("./", requestUri.getPath());
-
-									Logger.println("Trying to get a file at: " + path);
-
-									Charset charset = Charset.forName("US-ASCII");
-									response.setBodyReader(Files.newBufferedReader(path, charset));
-
-									String mimeType = Files.probeContentType(path);
-									if (mimeType == null) {
-										mimeType = "text/plain";
-									}
-
-									response.setHeader(new Header("Content-Type", mimeType));
-
-									response.handleRequest(request);
-								} else {
-									response.handleException(new NotImplementedException());
+								if(!response.wasSent()) {
+									throw new NotFoundException();
 								}
 							} catch (HttpException e) {
 								response.handleException(e);
-							} catch (NoSuchFileException e) {
-								response.handleException(new NotFoundException());
-							} catch (IOException e) {
-								response.handleException(new NotFoundException());
+							} catch (Exception e) {
+								response.handleException(new InternalServerException(e));
 							} finally {
 								in.close();
 								out.close();
@@ -94,6 +73,42 @@ public class HttpServer {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+
+	public void setExecutor(Executor executor) {
+		this.executor = executor;
+	}
+
+	private void handleRequest(HttpRequest request, HttpResponse response) throws Exception {
+		switch(request.getMethod()) {
+			case OPTIONS:
+				httpHandler.onOptions(request, response);
+				break;
+			case GET:
+				httpHandler.onGet(request, response);
+				break;
+			case HEAD:
+				httpHandler.onHead(request, response);
+				break;
+			case POST:
+				httpHandler.onPost(request, response);
+				break;
+			case PUT:
+				httpHandler.onPut(request, response);
+				break;
+			case DELETE:
+				httpHandler.onDelete(request, response);
+				break;
+			case TRACE:
+				httpHandler.onTrace(request, response);
+				break;
+			case CONNECT:
+				httpHandler.onConnect(request, response);
+				break;
+			case PATCH:
+				httpHandler.onPatch(request, response);
+				break;
 		}
 	}
 }

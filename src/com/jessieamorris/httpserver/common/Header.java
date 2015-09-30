@@ -1,4 +1,4 @@
-package com.jessieamorris.httpserver;
+package com.jessieamorris.httpserver.common;
 
 /**
  * Created by jessie on 15-02-05.

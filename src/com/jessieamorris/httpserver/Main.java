@@ -1,6 +1,8 @@
 package com.jessieamorris.httpserver;
 
+import com.jessieamorris.httpserver.handlers.BasicFileHttpHandler;
 import com.jessieamorris.httpserver.logging.Logger;
+import com.jessieamorris.httpserver.server.HttpServer;
 
 /**
  * Created by jessie on 15-02-05.
@@ -16,7 +18,7 @@ public class Main {
 			portNumber = Integer.parseInt(args[0]);
 		}
 
-		new HttpServer(portNumber);
+		new HttpServer(portNumber, new BasicFileHttpHandler());
 	}
 
 

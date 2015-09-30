@@ -6,6 +6,7 @@ package com.jessieamorris.httpserver.exceptions;
 public class HttpException extends Exception {
 	protected int httpStatusCode = 500;
 	protected String httpStatusMessage = "Internal Server Error";
+	protected String httpBody = null;
 
 	public int getHttpStatusCode() {
 		return httpStatusCode;
@@ -13,5 +14,9 @@ public class HttpException extends Exception {
 
 	public String getHttpStatusMessage() {
 		return httpStatusMessage;
+	}
+
+	public String getHttpBody() {
+		return httpBody;
 	}
 }
