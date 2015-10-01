@@ -6,7 +6,7 @@ package com.jessieamorris.httpserver.exceptions;
 public class InternalServerException extends HttpException {
 	public InternalServerException(Exception e) {
 		this.httpStatusCode = 500;
-		this.httpStatusMessage = "Internal Server Exception";
+		this.httpStatusMessage = "Internal Server Error";
 
 		this.httpBody = e.toString();
 	}
