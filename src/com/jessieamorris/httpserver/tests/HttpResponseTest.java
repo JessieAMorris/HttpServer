@@ -13,6 +13,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -53,8 +55,15 @@ public class HttpResponseTest {
 		response.setHeader(new Header("Content-Type", "text/html"));
 		response.setBody("This is the body");
 
-		HttpRequest httpRequest = new HttpRequest();
-		httpRequest.addHeader(new Header("Accept-Encoding", "gzip"));
+		HttpRequest httpRequest = new HttpRequest() {
+			@Override
+			public Map<String, Header> getHeadersMap() {
+				Map<String, Header> headers = new HashMap<String, Header>();
+				headers.put("Accept-Encoding", new Header("Accept-Encoding", "gzip"));
+
+				return headers;
+			}
+		};
 		response.handleRequest(httpRequest);
 
 		String body = "";
