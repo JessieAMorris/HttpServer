@@ -44,8 +44,6 @@ public class HttpServer {
 							OutputStream out = finalClientSocket.getOutputStream();
 							BufferedReader in = new BufferedReader(new InputStreamReader(finalClientSocket.getInputStream()));
 
-
-
 							HttpRequest request = new HttpRequest();
 							HttpResponse response = new HttpResponse(out);
 
@@ -80,6 +78,7 @@ public class HttpServer {
 		this.executor = executor;
 	}
 
+	// TODO: There's probably a better way, but I don't know what it is.
 	private void handleRequest(HttpRequest request, HttpResponse response) throws Exception {
 		switch(request.getMethod()) {
 			case OPTIONS:
