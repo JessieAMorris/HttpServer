@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
  * Created by jessie.
  */
 public class HttpServer {
+	private ServerSocket serverSocket;
 	private IHttpHandler httpHandler;
 	private Executor executor = Executors.newFixedThreadPool(8);
 
@@ -26,52 +27,62 @@ public class HttpServer {
 		this.httpHandler = httpHandler;
 
 		try {
-			ServerSocket serverSocket = new ServerSocket(portNumber);
+			serverSocket = new ServerSocket(portNumber);
 
 			System.out.println("Server started on port " + portNumber);
 
-			Socket clientSocket = null;
-
-			while ((clientSocket = serverSocket.accept()) != null) {
-				Logger.println("Connection made?");
-
-				final Socket finalClientSocket = clientSocket;
-
-				executor.execute(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							OutputStream out = finalClientSocket.getOutputStream();
-							BufferedReader in = new BufferedReader(new InputStreamReader(finalClientSocket.getInputStream()));
-
-							HttpRequest request = new HttpRequest();
-							HttpResponse response = new HttpResponse(out);
-
-							try {
-								request.parseRequest(in);
-
-								handleRequest(request, response);
-
-								if(!response.wasSent()) {
-									throw new NotFoundException();
-								}
-							} catch (HttpException e) {
-								response.handleException(e);
-							} catch (Exception e) {
-								response.handleException(new InternalServerException(e));
-							} finally {
-								in.close();
-								out.close();
-							}
-						} catch (IOException e) {
-							e.printStackTrace();
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						Socket clientSocket = null;
+						while ((clientSocket = serverSocket.accept()) != null) {
+							doLoop(clientSocket);
 						}
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
-				});
-			}
+				}
+			}).start();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void doLoop(final Socket clientSocket) throws IOException {
+		Logger.println("Connection made?");
+
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					OutputStream out = clientSocket.getOutputStream();
+					BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+					HttpRequest request = new HttpRequest();
+					HttpResponse response = new HttpResponse(out);
+
+					try {
+						request.parseRequest(in);
+
+						handleRequest(request, response);
+
+						if (!response.wasSent()) {
+							throw new NotFoundException();
+						}
+					} catch (HttpException e) {
+						response.handleException(e);
+					} catch (Exception e) {
+						response.handleException(new InternalServerException(e));
+					} finally {
+						in.close();
+						out.close();
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 
 	public void setExecutor(Executor executor) {
@@ -80,7 +91,7 @@ public class HttpServer {
 
 	// TODO: There's probably a better way, but I don't know what it is.
 	private void handleRequest(HttpRequest request, HttpResponse response) throws Exception {
-		switch(request.getMethod()) {
+		switch (request.getMethod()) {
 			case OPTIONS:
 				httpHandler.onOptions(request, response);
 				break;
@@ -109,5 +120,9 @@ public class HttpServer {
 				httpHandler.onPatch(request, response);
 				break;
 		}
+	}
+
+	public void close() throws IOException {
+		serverSocket.close();
 	}
 }

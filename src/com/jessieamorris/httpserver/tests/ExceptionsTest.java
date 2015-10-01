@@ -21,18 +21,12 @@ public class ExceptionsTest {
 
 	@Test
 	public void shouldReturn500OnInternalError() {
-		Exception thrown;
-
-		try {
-			throw new IllegalArgumentException("Test!");
-		} catch(Exception e) {
-			thrown = e;
-		}
+		Exception thrown = new IllegalArgumentException("Test!");
 
 		HttpException e = new InternalServerException(thrown);
 		Assert.assertEquals("Status code", 500, e.getHttpStatusCode());
 		Assert.assertEquals("Status message", "Internal Server Error", e.getHttpStatusMessage());
-		Assert.assertEquals("Body", thrown.toString(), e.getHttpBody());
+		Assert.assertEquals("Body", InternalServerException.getStackTraceString(thrown), e.getHttpBody());
 	}
 
 	@Test

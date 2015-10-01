@@ -8,10 +8,16 @@ public class InternalServerException extends HttpException {
 		this.httpStatusCode = 500;
 		this.httpStatusMessage = "Internal Server Error";
 
-		this.httpBody = "";
-		StackTraceElement[] stack = e.getStackTrace();
+		this.httpBody = getStackTraceString(e);
+	}
+
+	public static String getStackTraceString(Throwable throwable) {
+		String ret = "";
+		StackTraceElement[] stack = throwable.getStackTrace();
 		for (StackTraceElement s : stack) {
-			httpBody = httpBody + s.toString() + "\n\t\t";
+			ret = ret + s.toString() + "\n\t\t";
 		}
+
+		return ret;
 	}
 }
