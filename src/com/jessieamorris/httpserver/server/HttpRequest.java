@@ -40,7 +40,7 @@ public class HttpRequest {
 	}
 
 	private Method method;
-	private URI uri;
+	protected URI uri;
 	private String body;
 	private String version;
 	private Map<String, Header> headers = new HashMap<String, Header>();
