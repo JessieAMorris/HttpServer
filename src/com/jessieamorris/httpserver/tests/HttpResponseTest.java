@@ -1,6 +1,7 @@
 package com.jessieamorris.httpserver.tests;
 
 import com.jessieamorris.httpserver.common.Header;
+import com.jessieamorris.httpserver.exceptions.NotFoundException;
 import com.jessieamorris.httpserver.server.HttpRequest;
 import com.jessieamorris.httpserver.server.HttpResponse;
 import org.junit.Assert;
@@ -28,7 +29,11 @@ public class HttpResponseTest {
 		response.setHeader(new Header("Content-Type", "text/html"));
 		response.setBody("This is the body");
 
+		Assert.assertFalse("Wasn't actually sent before it should be", response.wasSent());
+
 		response.handleRequest(null);
+
+		Assert.assertTrue("Was sent when it should be", response.wasSent());
 
 		Assert.assertEquals("Response", "HTTP/1.1 200 OK\n" +
 				"Test: The test header value\n" +
@@ -111,6 +116,27 @@ public class HttpResponseTest {
 		response.handleRequest(null);
 
 		Assert.assertEquals("Response", "HTTP/1.1 200 OK\n" +
+				"Test: The test header value\n" +
+				"Date: Wed, 30 Sep 2015 23:14:13 GMT\n" +
+				"Content-Type: text/html\n" +
+				"\n" +
+				"This is the body\n" +
+				"Line two", out.toString(Charset.defaultCharset().name()));
+	}
+
+	@Test
+	public void testSendingException() throws IOException {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		HttpResponse response = new HttpResponse(out);
+
+		response.setHeader(new Header("Test", "The test header value"));
+		response.setHeader(new Header("Date", "Wed, 30 Sep 2015 23:14:13 GMT"));
+		response.setHeader(new Header("Content-Type", "text/html"));
+		response.setBodyReader(new BufferedReader(new StringReader("This is the body\nLine two")));
+
+		response.handleException(new NotFoundException());
+
+		Assert.assertEquals("Response", "HTTP/1.1 404 Not Found\n" +
 				"Test: The test header value\n" +
 				"Date: Wed, 30 Sep 2015 23:14:13 GMT\n" +
 				"Content-Type: text/html\n" +
