@@ -6,6 +6,7 @@ import com.jessieamorris.httpserver.logging.Logger;
 import com.jessieamorris.httpserver.server.HttpRequest;
 import com.jessieamorris.httpserver.server.HttpResponse;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -18,15 +19,18 @@ import java.nio.file.Paths;
  * Created by jessie.
  */
 public class BasicFileHttpHandler extends SimpleHttpHandler {
+	File currentDirectory = new File(Paths.get("./").toAbsolutePath().toUri());
+
 	@Override
 	public void onGet(HttpRequest request, HttpResponse response) throws Exception {
 		try {
 			URI requestUri = request.getURI();
 
-			// TODO: Security issues, could escalate by using "../" in paths
-			Path path = Paths.get("./", requestUri.getPath());
+			Path path = Paths.get("./", requestUri.getPath()).toAbsolutePath();
 
 			Logger.println("Trying to get a file at: " + path);
+
+			checkForPathTransversalIssues(path);
 
 			Charset charset = Charset.forName("US-ASCII");
 			response.setBodyReader(Files.newBufferedReader(path, charset));
@@ -40,9 +44,21 @@ public class BasicFileHttpHandler extends SimpleHttpHandler {
 
 			response.handleRequest(request);
 		} catch (NoSuchFileException e) {
-			response.handleException(new NotFoundException());
+			throw new NotFoundException();
 		} catch (IOException e) {
-			response.handleException(new NotFoundException());
+			throw new NotFoundException();
 		}
 	}
+
+
+	private void checkForPathTransversalIssues(Path path) throws NotFoundException, IOException {
+		File file = new File(path.toUri());
+		final String canonicalDirPath = currentDirectory.getCanonicalPath() + File.separator;
+		final String canonicalEntryPath = file.getCanonicalPath();
+
+		if (!canonicalEntryPath.startsWith(canonicalDirPath)) {
+			throw new NotFoundException();
+		}
+	}
+
 }
