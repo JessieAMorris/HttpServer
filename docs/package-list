@@ -1,0 +1,7 @@
+com.jessieamorris.httpserver
+com.jessieamorris.httpserver.common
+com.jessieamorris.httpserver.exceptions
+com.jessieamorris.httpserver.handlers
+com.jessieamorris.httpserver.logging
+com.jessieamorris.httpserver.server
+com.jessieamorris.httpserver.tests
