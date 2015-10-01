@@ -77,9 +77,9 @@ public class HttpResponse {
 
 		if(bodyReader != null) {
 			body = "";
-			String line;
-			while((line = bodyReader.readLine()) != null) {
-				out.println(line);
+			int character;
+			while((character = bodyReader.read()) != -1) {
+				out.print((char) character);
 			}
 		} else {
 			if(body == null) {
