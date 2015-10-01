@@ -16,7 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Created by jessie.
+ * A simple implementation of a file serving HTTP handler. It serves files from the current directory only.
  */
 public class BasicFileHttpHandler extends SimpleHttpHandler {
 	File currentDirectory = new File(Paths.get("./").toAbsolutePath().toUri());
@@ -50,7 +50,8 @@ public class BasicFileHttpHandler extends SimpleHttpHandler {
 		}
 	}
 
-
+	// Used to prevent path transversing issues (for example a malaicious entity including /../ in the path
+	// to get your /etc/shadow file.
 	private void checkForPathTransversalIssues(Path path) throws NotFoundException, IOException {
 		File file = new File(path.toUri());
 		final String canonicalDirPath = currentDirectory.getCanonicalPath() + File.separator;

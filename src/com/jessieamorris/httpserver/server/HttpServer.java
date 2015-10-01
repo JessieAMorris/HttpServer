@@ -23,6 +23,17 @@ public class HttpServer {
 	private IHttpHandler httpHandler;
 	private Executor executor = Executors.newFixedThreadPool(8);
 
+	/**
+	 * Creates an HTTP server on the specified port number using the given HttpHandler. This is a multi-threaded
+	 * HTTP server that runs in a background thread. To change the Executor used in handling requests, see setExecutor.
+	 * The close method on this class should be called when you have finished with this object.
+	 *
+	 * @param  portNumber the port number to listen to
+	 * @param  httpHandler the handler class used to listen to requests and respond to them
+	 * @see         HttpRequest
+	 * @see         HttpResponse
+	 * @see         IHttpHandler
+	 */
 	public HttpServer(int portNumber, IHttpHandler httpHandler) {
 		this.httpHandler = httpHandler;
 
@@ -85,6 +96,11 @@ public class HttpServer {
 		});
 	}
 
+	/**
+	 * Sets the executor used for handling requests
+	 *
+	 * @param  executor the executor used for handling requests
+	 */
 	public void setExecutor(Executor executor) {
 		this.executor = executor;
 	}
@@ -122,6 +138,11 @@ public class HttpServer {
 		}
 	}
 
+	/**
+	 * Closes any open sockets or other resources used by the HttpServer
+	 *
+	 * @throws IOException  Thrown when the socket cannot be closed due to an IO error
+	 */
 	public void close() throws IOException {
 		serverSocket.close();
 	}

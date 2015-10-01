@@ -4,7 +4,11 @@ import com.jessieamorris.httpserver.server.HttpRequest;
 import com.jessieamorris.httpserver.server.HttpResponse;
 
 /**
- * Created by jessie.
+ * Interface to implement for handling HTTP requests.
+ *
+ * @see         HttpRequest
+ * @see         HttpResponse
+ * @see         SimpleHttpHandler
  */
 public interface IHttpHandler {
 	void onGet(HttpRequest request, HttpResponse response) throws Exception;

@@ -4,7 +4,11 @@ import com.jessieamorris.httpserver.server.HttpRequest;
 import com.jessieamorris.httpserver.server.HttpResponse;
 
 /**
- * Created by jessie.
+ * A blank implementation of a HttpHandler. This allows you to overwrite a single method only
+ *
+ * @see         HttpRequest
+ * @see         HttpResponse
+ * @see         IHttpHandler
  */
 public abstract class SimpleHttpHandler implements IHttpHandler {
 	@Override

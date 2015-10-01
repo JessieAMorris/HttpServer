@@ -15,6 +15,12 @@ import java.util.zip.GZIPOutputStream;
 /**
  * Created by jessie.
  */
+
+/**
+ * This class handles the HttpResponse. This is used to set the headers and body of a response to a given request.
+ *
+ * @see HttpRequest
+ */
 public class HttpResponse {
 	private OutputStream outputStream = null;
 
@@ -29,6 +35,13 @@ public class HttpResponse {
 	private BufferedReader bodyReader;
 	private boolean wasSent = false;
 
+	/**
+	 * Constructor for the HttpResponse object. The Date and Content-Type headers are automatically set.
+	 * Date is set to the current date and Content-Type defaults to text/html.
+	 *
+	 * @param  outputStream the stream to output the HttpResponse once it is finished
+	 * @see    OutputStream
+	 */
 	public HttpResponse(OutputStream outputStream) {
 		this.outputStream = outputStream;
 
@@ -36,14 +49,34 @@ public class HttpResponse {
 		responseHeaders.put("Content-Type", new Header("Content-Type", "text/html"));
 	}
 
+	/**
+	 * Sets the HTTP body to be sent in the response
+	 *
+	 * @param  body a string containing the HTTP response body.
+	 */
 	public void setBody(String body) {
 		this.body = body;
 	}
 
+	/**
+	 * Sets the HTTP body to be sent by using the output from a BufferedReader
+	 *
+	 * @param  bodyReader a BufferedReader containing the HTTP response body. If both a String body (via setBody) and
+	 *                    a BufferedReader body (via this method) are set the BufferedReader will overwrite the String
+	 *                    body.
+	 */
 	public void setBodyReader(BufferedReader bodyReader) {
 		this.bodyReader = bodyReader;
 	}
 
+	/**
+	 * Sends the request to a given request. The request is used to determine any custom encoding that needs to be
+	 * performed, such as GZip. Any output will be sent to the OutputStream given in the constructor
+	 *
+	 * @param  request the HttpRequest corresponding to a given respnose. Can be null.
+	 * @see         HttpRequest
+	 * @throws      IOException throws an IOException when the outputStream is invalid.
+	 */
 	public void handleRequest(HttpRequest request) throws IOException {
 		boolean doGzip = false;
 		Header acceptEncodings = (request != null && request.getHeadersMap() != null) ? request.getHeadersMap().get("Accept-Encoding") : null;
@@ -95,6 +128,15 @@ public class HttpResponse {
 		wasSent = true;
 	}
 
+	/**
+	 * Sends an error to the client. The HttpException has additional parameters used for determining error code
+	 * and message. For general exceptions the InternalServerException class can be used.
+	 *
+	 * @param  exception the HttpException that maps to a given error on the server
+	 * @see         HttpException
+	 * @see         com.jessieamorris.httpserver.exceptions.InternalServerException
+	 * @throws      IOException thrown when the outputStream is invalid
+	 */
 	public void handleException(HttpException exception) throws IOException {
 		statusCode = exception.getHttpStatusCode();
 		statusMessage = exception.getHttpStatusMessage();
@@ -115,10 +157,20 @@ public class HttpResponse {
 		return dateFormat.format(calendar.getTime());
 	}
 
+	/**
+	 * Sets a header for the response. Any previously set headers with the same name will be overwritten.
+	 *
+	 * @param  header   the HTTP header to be sent in the response
+	 */
 	public void setHeader(Header header) {
 		responseHeaders.put(header.getName(), header);
 	}
 
+	/**
+	 * Used to determine if the response has been sent to the OutputStream
+	 *
+	 * @return      true if the response was sent to the OutputStream of false if it has not been sent
+	 */
 	public boolean wasSent() {
 		return wasSent;
 	}

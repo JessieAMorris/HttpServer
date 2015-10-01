@@ -17,6 +17,9 @@ import java.util.Map;
  * Created by jessie on 15-02-05.
  */
 public class HttpRequest {
+	/**
+	 * An enum that contains all of the different valid HTTP methods
+	 */
 	public enum Method {
 		OPTIONS("OPTIONS"),
 		GET("GET"),
@@ -29,11 +32,15 @@ public class HttpRequest {
 		PATCH("PATCH");
 
 		private String method;
-
 		Method(String method) {
 			this.method = method;
 		}
 
+		/**
+		 * Returns the HTTP string for a given method. This is useful for parsing HTTP requests, etc.
+		 *
+		 * @return      The HTTP method string that corresponds to a given HTTP method
+		 */
 		public String getMethod() {
 			return method;
 		}
@@ -45,12 +52,22 @@ public class HttpRequest {
 	private String version;
 	private Map<String, Header> headers = new HashMap<String, Header>();
 
+	/**
+	 * Creates an HTTP Request object. This object handles parsing of the actual HTTP request. Currently it handles
+	 * GETs and POSTs.
+	 */
 	public HttpRequest() {}
 
-	public void setMethod(Method method) {
+	private void setMethod(Method method) {
 		this.method = method;
 	}
 
+	/**
+	 * Returns a Method enum object that corresponds with the requests HTTP method
+	 *
+	 * @return      the HTTP method enum
+	 * @see         com.jessieamorris.httpserver.server.HttpRequest.Method
+	 */
 	public Method getMethod() {
 		return method;
 	}
@@ -59,40 +76,82 @@ public class HttpRequest {
 		this.uri = uri;
 	}
 
+	/**
+	 * Returns a URI object that is set to be the parsed value of the HTTP request path. This can
+	 * either be the fully qualified URL or a relative path
+	 *
+	 * @return      URI object with the value set to the parsed HTTP path.
+	 * @see         URI
+	 */
 	public URI getURI() {
 		return uri;
 	}
 
+	/**
+	 * Returns the parsed HTTP body. If the request has no body (for a POST with no body or a GET for example) this
+	 * will return null. This body will already have any encoding options applied (i.e. GZip).
+	 *
+	 * @return      The HTTP request body
+	 */
 	public String getBody() {
 		return body;
 	}
 
-	public void setVersion(String version) {
+	private void setVersion(String version) {
 		this.version = version;
 	}
 
+	/**
+	 * Returns the HTTP version number. Currently will always be `HTTP/1.1`
+	 *
+	 * @return      The HTTP version
+	 */
 	public String getVersion() {
 		return version;
 	}
 
-	public void validateRequestLine() throws InvalidRequestException {
+	private void validateRequestLine() throws InvalidRequestException {
 		if(version == null || !version.equalsIgnoreCase("HTTP/1.1")) {
 			throw new InvalidRequestException();
 		}
 	}
 
-	public void addHeader(Header header) {
+	private void addHeader(Header header) {
 		headers.put(header.getName(), header);
 	}
 
+	/**
+	 * Returns a Collection of all request headers
+	 *
+	 * @return      A Collection of all request headers
+	 * @see         Header
+	 */
 	public Collection<Header> getHeadersCollection() {
 		return headers.values();
 	}
 
+	/**
+	 * Returns a map of all headers. The key of the map is the Header name and the value
+	 * is the Header object.
+	 *
+	 * @return      a Map of all Headers
+	 * @see         Header
+	 * @see         Map
+	 */
 	public Map<String, Header> getHeadersMap() {
 		return headers;
 	}
 
+	/**
+	 * This function parses the HTTP request method, path, version, headers, and body and sets any parsed info to the
+	 * to the current HttpRequest object.
+	 *
+	 * @param  in   the BufferedReader containing the raw HTTP request
+	 * @see         BufferedReader
+	 * @throws      NotImplementedException thrown when the parsed HTTP method is not supported
+	 * @throws      InvalidRequestException thrown when the parsed HTTP is incorrect or malformed
+	 * @throws      IOException thrown when the BufferedReader throws an exception
+	 */
 	public void parseRequest(BufferedReader in) throws IOException, NotImplementedException, InvalidRequestException {
 		Logger.println("Got some input");
 
